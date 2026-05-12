@@ -1,0 +1,42 @@
+
+# Assets in asset mode
+[assets.BTCUSDT]
+img = 'btc' # (str) Img in Discord app
+name = 'Bitcoin' # (str)
+
+[assets.ETHUSDT]
+img = 'eth'
+name = 'Ethereum'
+
+[assets.BNBUSDT]
+img = 'bnb'
+name = 'Binance Coin'
+
+[assets.USDCUSDT]
+img = 'usdc'
+name = 'USD Coin'
+
+# Last trade mode
+[last_trade]
+max_trades = 4 # (int) Maximum number of trades # Default: len of assets
+min_pct = 1 # (float) Minimum percentage to display a hist trade
+
+# Active trade mode
+[active_trade]
+max_trades = 4 # (int) Maximum number of trades # Default: last_trade.max_trades
+
+[general]
+interval = '1d' # (str) Interval to show the change
+trade_assets = '*' # (str|list[str]) Assets for search open trades, '*' = all
+repo_mode = true # (bool) Activate repository mode.
+
+[market]
+decu =  ['🟩','✅','🟢','🔥','💣','🍏','🚀'] # (list[str]) Up text decoration
+decw = ['🟥','❌','🔴','🍎','🧲','🚨','🩸'] # (list[str]) Down text decoration
+
+[duration]
+active_trade = 120 # (float) Duration of active_trade_mode
+asset_mode = 60 # (float) Duration of asset_mode
+last_trade = 60 # (float) Duration of last_trade_mode
+offboff_max = 120 # (float) Max connect retry delay
+min_sleep = 20 # (float) Minimum time between updates
