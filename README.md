@@ -16,6 +16,10 @@ Your trades, on your Discord profile.
 
 ---
 
+![Preview](https://raw.githubusercontent.com/diego-cores/pyrich/main/images/preview.png "Pyrich preview")
+
+---
+
 ## 📦 Installation
 
 1. **Download** — Go to the [releases page](https://github.com/diego-cores/pyrich/releases) and download the latest ZIP.
@@ -25,9 +29,9 @@ Your trades, on your Discord profile.
 5. **Create .env** — Create a `.env` file in the repository directory with the following variables:
 
 ```env
-   CLIENT_ID=  # Discord app ID
-   API_KEY=    # Binance API key
-   SECRET_KEY= # Binance secret key
+CLIENT_ID=  # Discord app ID
+API_KEY=    # Binance API key
+SECRET_KEY= # Binance secret key
 ```
 
 ---
@@ -37,7 +41,7 @@ Your trades, on your Discord profile.
 Run the main script:
 
 ```bash
-pythonw src/main.py
+python src/main.py
 ```
 
 **Windows users:** Use `pyrich.bat` instead and place a shortcut in the startup folder to run it automatically on boot.
