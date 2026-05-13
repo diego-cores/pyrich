@@ -29,6 +29,7 @@ max_trades = 4 # (int) Maximum number of trades # Default: last_trade.max_trades
 interval = '1d' # (str) Interval to show the change
 trade_assets = '*' # (str|list[str]) Assets for search open trades, '*' = all
 repo_mode = true # (bool) Activate repository mode.
+mute = false # (bool) Mute Windows Toast notification sound.
 
 [market]
 decu =  ['🟩','✅','🟢','🔥','💣','🍏','🚀'] # (list[str]) Up text decoration

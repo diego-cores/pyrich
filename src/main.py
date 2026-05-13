@@ -1,8 +1,80 @@
 """
+Main module
+
+This module contains the main functions to run Pyrich.
+This is the executable entry to run 'Pyrich.'
+
+Version:
+    1.0.0
+
+Repository:
+    https://github.com/diego-cores/pyrich
+
+License: 
+    MIT License
+
+    Copyright (c) 2026 Diego
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+Metadata:
+    __license__
+    __version__
+    __author__
+    __url__
+    __email__
+
+Variables:
+    logger (Logger): Logger variable.
+    rich_presence (Presence|None): Presence object.
+    assets_data (dict[str, dict[str, str]]): Assets for 'asset_mode'.
+    market_side (dict[bool, dict[str, list[str]|str]]): Dictionary with decorators 
+        and images for different sides of the market.
+    live_img (dict[str, str]): Names of images for live and offline trade.
+    CFG (AppConfig): Dataclass to save configuration.
+
+Hidden variables:
+    __active_trades (dict[str, int]): Variable to record changes in the number of open trades.
+
+Class:
+    AppConfig: Dataclass to store all configurable variables.
+
+Functions:
+    user_config: Update all 'CFG' variables according to '.toml' configuration.
+    all_open_trades: Returns all open trades in 'assets' symbol list.
+    sleep_check: This function puts the program to sleep for 'seconds', and checks if there is a new open trade.
+    connect: This function is responsible for connecting Presence to Discord app.
+    asset_mode: Mode to display the change of 'assets_list' symbols.
+    last_trades_mode: Update rich presence with a previous trade closed.
+    active_trade_mode: Update rich presence with a live trade.
+    repository_mode: Update rich presence with repository information.
+    run: Run the main loop and config global variables.
 """
 
+__license__ = 'MIT'
+__version__ = '1.0.0'
+__author__ = 'Diego Cores'
+__url__ = 'https://github.com/diego-cores'
+__email__ = '89626622+diego-cores@users.noreply.github.com'
+
+from pypresence import Presence, PipeClosed
 from dataclasses import dataclass
-from pypresence import Presence
 from datetime import datetime
 import pandas as pd
 
@@ -20,16 +92,16 @@ rich_presence:Presence|None = None
 __active_trades:dict[str, int] = {'value':0, 'last':0}
 
 # User config
-assets_data = {
+assets_data:dict[str, dict[str, str]] = {
     'DEFAULT': {'img':'default', 'name':'placeholder'},
 }
 
-market_side = {
+market_side:dict[bool, dict[str, list[str]|str]] = {
     True: {'img':'green', 'dec':[]},
     False: {'img':'red', 'dec':[]},
 }
 
-live_img = {
+live_img:dict[str, str] = {
     'live':'live',
     'offline':'offline',
 }
@@ -38,6 +110,26 @@ live_img = {
 class AppConfig:
     """
     App Config
+
+    Dataclass to store all configurable variables.
+
+    Variables:
+        asset_interval (str): Change interval for 'asset_mode'. Default: '1d'.
+        ltrades_show (int|None): Maximum number of trades to display 
+            in 'last_trade_mode'. Default: None.
+        ltrades_min_pct (float): Minimum percentage for the trade to be 
+            displayed in 'last_trade_mode'. Default: 1.
+        active_show (int|None): Maximum number of trades to display 
+            in 'active_trade_mode'. Default: None.
+        active_trade_duration (float): Duration of 'active_trade_mode' mode. Default: 120.
+        asset_mode_duration (float): Duration of 'asset_mode' mode. Default: 60.
+        last_trade_duration (float): Duration of 'last_trade_mode' mode. Default: 60.
+        offboff_max (float): Max seconds sleeping to reconect presence. Default: 120.
+        trade_assets (str|list[str]): Symbols to search for trades. Default: '*'.
+        min_sleep (float): Minimum time the program can be sleep. Default: 20.
+            Used to respect the rich presence update limit.
+        repo_mode (bool): Enable or disable 'repository_mode'. Default: True.
+        mute (bool): Mute Windows Toast notification sound.
     """
 
     asset_interval:str = '1d'
@@ -53,13 +145,17 @@ class AppConfig:
     offboff_max:float = 120
     trade_assets:str|list[str] = '*'
     min_sleep:float = 20
+    mute:bool = False
 
     repo_mode:bool = True
 
-CFG = AppConfig()
+CFG:AppConfig = AppConfig()
 
 def user_config() -> None:
     """
+    User config
+
+    Update all 'CFG' variables according to '.toml' configuration.
     """
     global assets_data, market_side, CFG
 
@@ -75,6 +171,7 @@ def user_config() -> None:
     CFG.trade_assets = general.get('trade_assets', CFG.trade_assets)
     CFG.asset_interval = general.get('interval', CFG.asset_interval)
     CFG.repo_mode = general.get('repo_mode', True)
+    CFG.mute = general.get('mute', False)
 
     market_side[True]['dec'] = market.get('decu',[])
     market_side[False]['dec'] = market.get('decw',[])
@@ -91,6 +188,18 @@ def user_config() -> None:
     CFG.min_sleep = duration.get('min_sleep', CFG.min_sleep)
 
 def all_open_trades(assets:list[str]) -> pd.DataFrame:
+    """
+    All open trade
+
+    Returns all open trades in 'assets' symbol list.
+
+    Args:
+        assets (list[str]): Binance Futures symbol list.
+
+    Return:
+        DataFrame: Open trades.
+    """
+
     open_trades = pd.DataFrame()
     for asset in assets:
         open_trades = pd.concat([open_trades, tools.open_trades(asset)])
@@ -99,6 +208,16 @@ def all_open_trades(assets:list[str]) -> pd.DataFrame:
 
 def sleep_check(seconds:float) -> bool|None:
     """
+    Sleep check
+
+    This function puts the program to sleep for 'seconds', and checks if there is a new open trade.
+    It will not sleep for less time than 'min_sleep' to respect the minimum update time of rich presence.
+
+    Args:
+        seconds (float): Sleep seconds.
+
+    Return:
+        bool|None: Return True if there is a new trade.
     """
     global __active_trades
 
@@ -113,6 +232,17 @@ def sleep_check(seconds:float) -> bool|None:
 
 def connect(base_delay:float = 5, max_delay:float = 120) -> Presence:
     """
+    Connect
+
+    This function is responsible for connecting Presence to Discord app.
+    This attempts to connect in a loop, putting the program to sleep.
+
+    Args:
+        base_daley (float, optional): Base sleep.
+        max_delay (float, optional): Max seconds sleeping. 
+
+    Return:
+        Presence: Presence connected to discord app.
     """
 
     delay = base_delay
@@ -130,6 +260,15 @@ def connect(base_delay:float = 5, max_delay:float = 120) -> Presence:
 
 def asset_mode(interval:str = '1d', duration:float = 60) -> None:
     """
+    Asset mode
+
+    Mode to display the change of 'assets_list' symbols.
+    The duration of this function may be longer for 'min_sleep' due to 'sleep_check'.
+
+    Args:
+        interval (str, optional): Interval of change. 
+            Example: '1m', '15m', '30m', '1h', '1d'.
+        duration (float, optional): Total duration in seconds. 
     """
     assert rich_presence is not None
 
@@ -174,6 +313,15 @@ def asset_mode(interval:str = '1d', duration:float = 60) -> None:
 
 def last_trades_mode(trades_max:int = 4, min_pct:float = 1, duration:float = 60) -> None:
     """
+    Last trades mode
+
+    Update rich presence with a previous trade closed.
+    The duration of this function may be longer for 'min_sleep' due to 'sleep_check'.
+
+    Args:
+        trade_max (int, optional): Maximum number of trades to display.
+        min_pct (float, optional): Minimum percentage for the trade to be displayed.
+        duration (float, optional): Total duration in seconds. 
     """
     assert isinstance(CFG.trade_assets, list) and all(map(lambda x: isinstance(x, str), CFG.trade_assets))
     assert rich_presence is not None
@@ -218,6 +366,14 @@ def last_trades_mode(trades_max:int = 4, min_pct:float = 1, duration:float = 60)
 
 def active_trade_mode(trades_max:int = 4, duration:float = 120) -> None:
     """
+    Active trade mode
+
+    Update rich presence with a live trade.
+    The duration of this function may be longer for 'min_sleep' due to 'sleep_check'.
+
+    Args:
+        trade_max (int, optional): Maximum number of trades to display.
+        duration (float, optional): Total duration in seconds. 
     """
     global __active_trades
 
@@ -264,6 +420,13 @@ def active_trade_mode(trades_max:int = 4, duration:float = 120) -> None:
 
 def repository_mode(duration:float = 30) -> None:
     """
+    Repository mode
+
+    Update rich presence with repository information.
+    The duration of this function may be longer for 'min_sleep' due to 'sleep_check'.
+
+    Args:
+        duration (float, optional): Total duration in seconds. 
     """
     assert rich_presence is not None
 
@@ -284,8 +447,11 @@ def repository_mode(duration:float = 30) -> None:
     logger.debug(f'Updated presence: repo')
     sleep_check(duration)
 
-def run():
+def run() -> None:
     """
+    Run
+
+    Run the main loop and config global variables 
     """
     global rich_presence, CFG
 
@@ -314,18 +480,22 @@ def run():
         if CFG.repo_mode:
             modes.append(lambda: repository_mode(duration=30))
 
-        for mode in random.sample(modes, k=len(modes)):
-            mode()
-            if __active_trades['value'] > __active_trades['last']:
-                break
+        try:
+            for mode in random.sample(modes, k=len(modes)):
+                mode()
+                if __active_trades['value'] > __active_trades['last']:
+                    break
 
-        active_trade_mode(trades_max=CFG.active_show, duration=CFG.active_trade_duration)
+            active_trade_mode(trades_max=CFG.active_show, duration=CFG.active_trade_duration)
+        except PipeClosed:
+            rich_presence = connect(max_delay=CFG.offboff_max)
+            continue
 
 if __name__ == '__main__':
     # Logging and config
     user_config()
-    utils.default_logging(logging.DEBUG, 'pyrich')
-    win_notify.setup(button=False, mute_lowlv=True)
+    utils.default_logging(logging.WARNING, 'pyrich')
+    win_notify.setup(button=False, mute_lowlv=True, mute=CFG.mute)
 
     while True:
         try:

@@ -1,6 +1,17 @@
 """
+Win notify module
+
+This module connects logging with notifications in Windows.
+
+Class:
+    ToastHandler: .
+
+Functions:
+    notify_toast: Use Toast to notify in Windows.
+    setup: This function configures logging to work with Windows notifications.
 """
 
+from typing import Callable
 import subprocess
 import logging
 
@@ -8,6 +19,16 @@ import utils
 
 def notify_toast(title:str, msg:str, button:bool = True, audio:bool = False) -> None:
     """
+    Notify Toast
+
+    Use Toast to notify in Windows.
+    Send a notification in Windows.
+
+    Args:
+        title (str): Notification title.
+        msg (str): Notification message.
+        button (str): Activate or deactivate a button that says 'Ignore'.
+        audio (bool): Activate or deactivate sound.
     """
 
     app_id = r'{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
@@ -46,11 +67,40 @@ def notify_toast(title:str, msg:str, button:bool = True, audio:bool = False) -> 
 
 class ToastHandler(logging.Handler):
     """
+    ToastHandler
+
+    Handler to send logs to Windows notifications.
+
+    Attributes:
+        title (str): Toast notification title.
+        mute (bool): Mute audio.
+        mute_low_level (bool): Mute low-level notification audio.
+        notify_handler (Callable): Function called to send the notification.
     """
 
-    def __init__(self, title:str, button:bool = True, mute_lowlv:bool = True):
+    title:str
+    mute:bool
+    mute_low_level:bool
+    notify_handler:Callable
+
+    def __init__(self, title:str, button:bool = True, mute_lowlv:bool = True, mute:bool = False) -> None:
+        """
+        __init__
+
+        Builder for initializing the class.
+
+        Args:
+            title (str): Toast notification title.
+            button (bool, optional): Button that says 'Ignore' in the notification.
+            mute_lowlv (bool, optional): Mute low-level notification audio.
+            mute (bool, optional): Mute audio. Overwrite 'mute_lowlv'.
+        """
+
         self.title = title
+
+        self.mute = mute
         self.mute_low_level = mute_lowlv
+
         self.notify_handler = lambda msg, audio: notify_toast(
             self.title, msg, button=button, audio=audio)
 
@@ -58,7 +108,7 @@ class ToastHandler(logging.Handler):
 
     def emit(self, record:logging.LogRecord) -> None:
         try:
-            audio = False if self.mute_low_level and record.levelno<=30 else True
+            audio = False if (self.mute_low_level and record.levelno<=30) or self.mute else True
             self.notify_handler(self.format(record), audio=audio)
         except Exception as e:
             print(f"ToastHandler error: {e}")
@@ -66,6 +116,14 @@ class ToastHandler(logging.Handler):
 
 def setup(*args, **kwargs) -> None:
     """
+    Setup
+
+    This function configures logging to work with Windows notifications.
+
+    Args:
+        button (bool, optional): Button that says 'Ignore' in the notification.
+        mute_lowlv (bool, optional): Mute low-level notification audio.
+        mute (bool, optional): Mute audio. Overwrite 'mute_lowlv'.
     """
 
     logger = logging.getLogger(utils.package_logg[:-1])

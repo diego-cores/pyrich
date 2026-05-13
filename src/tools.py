@@ -1,4 +1,24 @@
 """
+Tools module
+
+This module contains all the functions that calls the Binance client.
+
+Variables:
+    logger (Logger): Logger variable.
+
+Hidden Variables:
+    __client (None|DerivativesTradingUsdsFuturesRestAPI): Binance client.
+    __recv_window (int): Binance API response time limit.
+
+Functions:
+    secure_func: Execute a function. If an error occurs, it tries several times before raise error.
+    load_client: Function that initializes the Binance client.
+    convert_to_float: This function converts DataFrame columns to 'float'.
+    generate_more: This function is designed to execute the same 
+        request to the API several times and obtain more data.
+    open_trades: This function asks the Binance API for open trades on a symbol.
+    closed_trades: This function asks the Binance API for closed trades on a symbol.
+    fetch_data: This function requests the Binance API for the x last number of candles.
 """
 
 from binance_sdk_derivatives_trading_usds_futures.derivatives_trading_usds_futures import (
@@ -11,7 +31,7 @@ from binance_sdk_derivatives_trading_usds_futures.rest_api.rest_api import (
 )
 
 from datetime import datetime, timezone, timedelta
-from typing import Callable
+from typing import Callable, Any
 import pandas as pd
 import logging
 import time
@@ -22,10 +42,21 @@ import utils
 logger = logging.getLogger(utils.package_logg+__name__)
 
 __client:None|DerivativesTradingUsdsFuturesRestAPI = None
-__recvWindow = 6000
+__recv_window:int = 6000
 
-def secure_func(func, attempts:int = 5, delay:float = 1.5):
+def secure_func(func:Callable, attempts:int = 5, delay:float = 1.5) -> Any:
     """
+    Secure function
+
+    Execute a function. If an error occurs, it tries several times before raise error.
+
+    Args:
+        func (Callable): Function to execute.
+        attempts (int, optional): Number of attempts.
+        delay (float, optional): Sleep time between attempts.
+
+    Return:
+        Any: Returns the result of the function.
     """
 
     error = None
@@ -129,7 +160,7 @@ def open_trades(symbol:str) -> pd.DataFrame:
     global __client
     assert __client is not None
 
-    positions = secure_func(lambda: __client.position_information_v2(symbol=symbol, recv_window=__recvWindow).data())
+    positions = secure_func(lambda: __client.position_information_v2(symbol=symbol, recv_window=__recv_window).data())
 
     open_positions = [p.to_dict() for p in positions if float(p.to_dict()['positionAmt']) != 0] # pyrefly: ignore
 
@@ -137,7 +168,7 @@ def open_trades(symbol:str) -> pd.DataFrame:
         return pd.DataFrame()
 
     trades_data = [t.to_dict() for t in secure_func(lambda: __client.account_trade_list( # pyrefly: ignore
-        symbol=symbol, recv_window=__recvWindow)).data()]
+        symbol=symbol, recv_window=__recv_window)).data()]
 
     rows = []
     for pos in open_positions:
@@ -204,7 +235,8 @@ def closed_trades(symbol:str, days:int=5) -> pd.DataFrame:
         lambda end, start: secure_func(lambda: __client.account_trade_list(
             symbol=symbol, 
             start_time=start, 
-            end_time=end)).data(), days=days)
+            end_time=end,
+            recv_window=__recv_window)).data(), days=days)
 
     if data == []:
         return pd.DataFrame()

@@ -1,4 +1,19 @@
 """
+Utils module
+
+This model has useful functions for different tasks.
+
+Variables:
+    package_logg (str): Common name to connect the logs.
+    logger (Logger): Logger variable.
+
+Functions:
+    text_fix: Processes the `text` to remove common leading spaces and to remove line breaks or not.
+    round_r: Round num to have at most significant digits to the right of the decimal point.
+    default_logging: Configure logging.
+
+Hidden Functions:
+    _is_windows10_or_later: Returns True if the operating system is Windows 10 or higher.
 """
 
 import logging
@@ -9,6 +24,16 @@ logger = logging.getLogger(package_logg+__name__)
 
 def text_fix(text:str, exclude_newline:bool = False) -> str:
     """
+    Text fix.
+
+    Processes the `text` to remove common leading spaces and to remove line breaks or not.
+
+    Args:
+        text (str): Text to process.
+        newline_exclude (bool, optional): If True, excludes line breaks. Default is True.
+
+    Returns:
+        str: `text` without the common leading spaces on each line.
     """
 
     join_text = '' if exclude_newline else '\n'
@@ -63,6 +88,9 @@ def default_logging(level:int = logging.WARNING,
 
 def _is_windows10_or_later() -> bool:
     """
+    Is Windows 10 or later 
+
+    Returns True if the operating system is Windows 10 or higher.
     """
 
     return sys.platform == "win32" and sys.getwindowsversion().major >= 10

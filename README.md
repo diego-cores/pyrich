@@ -3,7 +3,7 @@
 
 ## Stay rich. Stay present
 
-A Python-based Discord Rich Presence client for Binance Futures USD-M traders.
+A Python-based Discord Rich Presence client for Binance USDS-M Futures traders.
 Displays your open positions, closed positions, and assets changes.
 Your trades, on your Discord profile.
 
@@ -22,7 +22,7 @@ Your trades, on your Discord profile.
 2. **Unzip** — Extract the contents to any directory you prefer.
 3. **Install dependencies** — Open a terminal in that folder and run: `pip install -r requirements.txt`.
 4. **Upload images** — In [Discord Developer Portal](https://discord.com/developers/applications) → Your App → Rich Presence, upload the images from `/images/upload`.
-5. **Create `.env`** — Create a `.env` file in the repository directory with the following variables:
+5. **Create .env** — Create a `.env` file in the repository directory with the following variables:
 
 ```env
    CLIENT_ID=  # Discord app ID
@@ -57,7 +57,7 @@ See `default.toml` for all available parameters and examples.
 
 ### 🪛 Main parameters
 
-**`[assets.SYMBOL]`** — Replace `SYMBOL` with the actual Binance Futures USD-M symbol.
+**`[assets.SYMBOL]`** — Replace `SYMBOL` with the actual Binance USDS-M Futures symbol.
 
 - `img` — Image name registered in Discord Developer -> App -> Rich Presence.
 - `name` — Display name for the symbol.
