@@ -5,7 +5,7 @@ This module contains the main functions to run Pyrich.
 This is the executable entry to run 'Pyrich.'
 
 Version:
-    1.0.0
+    1.0.1
 
 Repository:
     https://github.com/diego-cores/pyrich
@@ -68,7 +68,7 @@ Functions:
 """
 
 __license__ = 'MIT'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __author__ = 'Diego Cores'
 __url__ = 'https://github.com/diego-cores'
 __email__ = '89626622+diego-cores@users.noreply.github.com'
@@ -463,9 +463,9 @@ def run() -> None:
 
     if 'DEFAULT' in CFG.trade_assets:
         del CFG.trade_assets[CFG.trade_assets.index('DEFAULT')]
-    if not CFG.ltrades_show:
+    if CFG.ltrades_show is None:
         CFG.ltrades_show = len(assets_data)
-    if not CFG.active_show:
+    if CFG.active_show is None:
         CFG.active_show = CFG.ltrades_show or len(assets_data)
 
     tools.secure_func(lambda: tools.load_client(env.BINANCE_API, env.BINANCE_SECRET))

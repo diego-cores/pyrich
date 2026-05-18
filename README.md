@@ -1,5 +1,5 @@
 ![Pyrich logo](https://raw.githubusercontent.com/diego-cores/pyrich/main/images/logo.png)
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=fff) ![Python>=3.11](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=fff) ![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=fff) ![Binance](https://img.shields.io/badge/Binance-F0B90B?logo=binance&logoColor=fff)
+![Version](https://img.shields.io/badge/version-1.0.1-blue) ![License](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=fff) ![Python>=3.11](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=fff) ![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=fff) ![Binance](https://img.shields.io/badge/Binance-F0B90B?logo=binance&logoColor=fff)
 
 ## Stay rich. Stay present
 
