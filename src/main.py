@@ -5,7 +5,7 @@ This module contains the main functions to run Pyrich.
 This is the executable entry to run 'Pyrich.'
 
 Version:
-    1.0.1
+    1.0.2
 
 Repository:
     https://github.com/diego-cores/pyrich
@@ -329,12 +329,14 @@ def last_trades_mode(trades_max:int = 4, min_pct:float = 1, duration:float = 60)
     closed_trades = pd.DataFrame()
     for asset in CFG.trade_assets:
         closed_trades = pd.concat([closed_trades, tools.closed_trades(asset, days=5)])
-    if closed_trades.empty:
-        return
 
     mask = closed_trades.apply(
         lambda r: abs(r.realizedPnl / (r.qty * r.price) * 100) >= min_pct, axis=1)
     closed_trades = closed_trades[mask].sample(frac=1)
+
+    if closed_trades.empty:
+        return
+
     sleep = duration/len(closed_trades)
     default = assets_data.get('DEFAULT', {})
 
